@@ -4,6 +4,6 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: "/Right-to-Know-Demo/",
+  base: "/rtk-frontend/",
   plugins: [react(), tailwindcss()], 
 })
