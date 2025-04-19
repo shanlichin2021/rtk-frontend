@@ -1,8 +1,8 @@
 import React, { useContext, useState } from "react";
-import axios from "axios";
 import { ChatContext } from "../components/ChatContext";
 import { ModelEndpointContext } from "../components/ModelEndpointContext";
 import { HashLoader } from "react-spinners";
+import api from "../api"; // <-- use the wrapper, not plain axios
 
 const ChatPage = () => {
   const { messages, addMessage, saveChat } = useContext(ChatContext);
@@ -19,15 +19,13 @@ const ChatPage = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(
-        "https://rtk-backend-1054015385247.us-central1.run.app/api/chat",
-        {
-          history: messages,
-          message: currentMessage,
-          modelUrl: selectedEndpoint ? selectedEndpoint.url : "",
-          modelName: selectedEndpoint ? selectedEndpoint.model : "llama3.2",
-        }
-      );
+      const response = await api.post("/api/chat", {
+        history: messages,
+        message: currentMessage,
+        modelUrl: selectedEndpoint ? selectedEndpoint.url : "",
+        modelName: selectedEndpoint ? selectedEndpoint.model : "llama3.2",
+      });
+
       const aiEntry = { sender: "ai", text: response.data.reply };
       addMessage(aiEntry);
 

@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
-import axios from "axios";
 import { PuffLoader, RingLoader, HashLoader } from "react-spinners";
 import { ModelEndpointContext } from "../components/ModelEndpointContext";
+import api from "../api"; // ⬅️  use token‑aware wrapper (no plain axios)
 
 const FormPage = () => {
   const { endpoints } = useContext(ModelEndpointContext);
@@ -31,9 +31,10 @@ const FormPage = () => {
     }));
   };
 
-  // Build the prompt based on the form data.
-  const buildPrompt = () => {
-    return `User Information:
+  // ────────────────────────────────
+  // Prompt builders
+  // ────────────────────────────────
+  const buildPrompt = () => `User Information:
 Name: ${formData.name}
 Date of Birth: ${formData.dob}
 Email: ${formData.email || "N/A"}
@@ -46,41 +47,31 @@ Parents: ${formData.parents || "N/A"}
 Address: ${formData.address || "N/A"}
 
 Please analyze the above information and review whether your training data might include any personal or sensitive information related to this user. Identify potential issues and provide a concise summary in bullet points.`;
-  };
 
-  // Summarize multiple responses from the models.
-  const summarizeResponses = async (responses) => {
-    const combinedResponses = responses
-      .map(
-        (res, index) =>
-          `Response from Model ${index + 1} (${res.modelName}):
-${res.reply}`
-      )
+  /**
+   * Summarise N model replies using a single model.
+   */
+  const summariseResponses = async (results) => {
+    const combined = results
+      .map((r, i) => `Response ${i + 1} – ${r.modelName}:\n${r.reply}`)
       .join("\n\n");
-    const summaryPrompt = `Below are responses from multiple AI models regarding a user's provided personal information. Analyze these responses to identify any potential inclusion of sensitive personal data in training datasets. Provide a clean summary as a bullet-point list (each bullet should start with "-"):
-    
-${combinedResponses}`;
 
-    // Use the first endpoint as default summarizer
-    const defaultEndpoint = endpoints[0];
+    const summaryPrompt = `Below are responses from multiple AI models regarding a user's personal information. Summarise key findings in bullet points (each starting with \"-\").\n\n${combined}`;
 
-    try {
-      const response = await axios.post(
-        "https://rtk-backend-1054015385247.us-central1.run.app/api/chat",
-        {
-          history: [],
-          message: summaryPrompt,
-          modelName: defaultEndpoint.model,
-        }
-      );
-      return response.data.reply;
-    } catch (error) {
-      console.error("Error summarizing responses:", error);
-      return "Error generating summary.";
-    }
+    // use the first endpoint as default summariser
+    const ep = endpoints[0];
+
+    const response = await api.post("/api/chat", {
+      history: [],
+      message: summaryPrompt,
+      modelName: ep.model,
+    });
+    return response.data.reply;
   };
 
-  // Handle the form submission: send prompt to all endpoints, then summarize responses.
+  // ────────────────────────────────
+  // Form submit handler
+  // ────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -90,37 +81,37 @@ ${combinedResponses}`;
     const promptMessage = buildPrompt();
 
     try {
-      // Send the prompt to all available models.
+      // Fire requests to each endpoint in parallel – all via token‑aware api
       const requests = endpoints.map((ep) =>
-        axios.post("http://127.0.0.1:5000/api/chat", {
+        api.post("/api/chat", {
           history: [],
           message: promptMessage,
           modelName: ep.model,
         })
       );
 
-      // Await responses and format the results.
       const responses = await Promise.all(requests);
-      const results = responses.map((response, idx) => ({
-        modelName: endpoints[idx].name,
-        reply: response.data.reply,
+      const results = responses.map((res, i) => ({
+        modelName: endpoints[i].name,
+        reply: res.data.reply,
       }));
 
-      // Summarize the responses.
-      const summarized = await summarizeResponses(results);
-      setSummary(summarized);
+      // Summarise
+      const summarised = await summariseResponses(results);
+      setSummary(summarised);
 
-      // Optionally simulate email notification.
       if (formData.receiveEmail && formData.email) {
         setEmailNotice(`The summary will be emailed to ${formData.email}.`);
       }
     } catch (err) {
-      console.error("Error during submission:", err);
+      console.error(err);
       setSummary("Error retrieving responses. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+
+  console.log("Client ID:", import.meta.env.VITE_GOOGLE_CLIENT_ID);
 
   return (
     <div className="min-h-screen bg-[#030712] text-white p-8">

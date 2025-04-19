@@ -23,10 +23,10 @@ const App = () => {
               <TopBar />
               <div className="flex-1">
                 <Routes>
-                  <Route path="/" element={<LandingPage />} />
-                  <Route path="/form" element={<FormPage />} />
-                  <Route path="/about" element={<AboutPage />} />
-                  <Route path="/chat" element={<ChatPage />} />
+                  <Route path="rtk-frontend/" element={<LandingPage />} />
+                  <Route path="rtk-frontend/form" element={<FormPage />} />
+                  <Route path="rtk-frontend/about" element={<AboutPage />} />
+                  <Route path="rtk-frontend/chat" element={<ChatPage />} />
                 </Routes>
               </div>
             </div>
