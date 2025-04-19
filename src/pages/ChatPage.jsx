@@ -19,12 +19,15 @@ const ChatPage = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("http://127.0.0.1:5000/api/chat", {
-        history: messages,
-        message: currentMessage,
-        modelUrl: selectedEndpoint ? selectedEndpoint.url : "",
-        modelName: selectedEndpoint ? selectedEndpoint.model : "llama3.2",
-      });
+      const response = await axios.post(
+        "https://rtk-backend-1054015385247.us-central1.run.app/api/chat",
+        {
+          history: messages,
+          message: currentMessage,
+          modelUrl: selectedEndpoint ? selectedEndpoint.url : "",
+          modelName: selectedEndpoint ? selectedEndpoint.model : "llama3.2",
+        }
+      );
       const aiEntry = { sender: "ai", text: response.data.reply };
       addMessage(aiEntry);
 

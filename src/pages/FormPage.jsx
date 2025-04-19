@@ -65,11 +65,14 @@ ${combinedResponses}`;
     const defaultEndpoint = endpoints[0];
 
     try {
-      const response = await axios.post("http://127.0.0.1:5000/api/chat", {
-        history: [],
-        message: summaryPrompt,
-        modelName: defaultEndpoint.model,
-      });
+      const response = await axios.post(
+        "https://rtk-backend-1054015385247.us-central1.run.app/api/chat",
+        {
+          history: [],
+          message: summaryPrompt,
+          modelName: defaultEndpoint.model,
+        }
+      );
       return response.data.reply;
     } catch (error) {
       console.error("Error summarizing responses:", error);
