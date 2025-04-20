@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import TopBar from "./components/TopBar";
 import ChatPage from "./pages/ChatPage";
@@ -10,9 +10,19 @@ import { ChatProvider } from "./components/ChatContext";
 import { ModelEndpointProvider } from "./components/ModelEndpointContext";
 import { AuthProvider } from "./components/AuthContext";
 import AuthModal from "./components/AuthModal";
+import { useInitGoogleLogin } from "./auth/token";
 import "./App.css";
 
 const App = () => {
+  const login = useInitGoogleLogin();
+
+  useEffect(() => {
+    // Trigger Google Sign‑In popup on first load if we don't have a token yet
+    if (!sessionStorage.getItem("id_token")) {
+      login();
+    }
+  }, [login]);
+
   return (
     <ChatProvider>
       <AuthProvider>
