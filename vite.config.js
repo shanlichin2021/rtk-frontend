@@ -1,13 +1,14 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
+// vite.config.js
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
-// https://vite.dev/config/
 export default defineConfig({
+  // tell Vite that in production all assets are served from /rtk-frontend/
   base: "/rtk-frontend/",
+
   plugins: [react(), tailwindcss()], 
+
   server: {
-    // In dev, proxy /api → your Cloud Run or Gateway to bypass browser CORS
     proxy: {
       "/api": {
         target: process.env.VITE_API_BASE,
@@ -15,5 +16,11 @@ export default defineConfig({
         secure: true,
       },
     },
+  },
+
+  // (optional) you can also customize build output if you want:
+  build: {
+    outDir: "dist",
+    sourcemap: false,
   },
 });
