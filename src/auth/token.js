@@ -1,26 +1,34 @@
 // src/auth/token.js
-import { useGoogleLogin } from "@react-oauth/google";
+let cached = null;
+let expiryMs = 0;
+let refreshing = null;
 
-/**
- * Hook to launch Google Sign‑In and store the ID token in sessionStorage.
+/** 
+ * Returns a Promise that resolves to an access token.
+ * On first call it will pop the Google consent dialog.
  */
-export function useInitGoogleLogin() {
-  return useGoogleLogin({
-    flow: "implicit",
-    scope: "openid email",
-    onSuccess: (resp) => {
-      // resp.credential is the Google ID token
-      sessionStorage.setItem("id_token", resp.credential);
-    },
-    onError: () => {
-      console.error("Google login failed");
-    },
-  });
-}
+export async function getIdToken() {
+  const now = Date.now();
+  if (cached && now < expiryMs - 60_000) return cached;
 
-/**
- * Getter for the stored ID token (or null if not signed in)
- */
-export function getIdToken() {
-  return sessionStorage.getItem("id_token");
+  if (!refreshing) {
+    refreshing = new Promise((resolve, reject) => {
+      google.accounts.oauth2
+        .initTokenClient({
+          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+          scope: "openid",
+          audience: import.meta.env.VITE_CLOUD_RUN_AUDIENCE,
+          callback: ({ access_token, expires_in, error, error_description }) => {
+            refreshing = null;
+            if (error) return reject(new Error(error_description || error));
+            cached = access_token;
+            expiryMs = now + expires_in * 1000;
+            resolve(cached);
+          },
+        })
+        .requestAccessToken();
+    });
+  }
+
+  return refreshing;
 }

@@ -10,18 +10,17 @@ import { ChatProvider } from "./components/ChatContext";
 import { ModelEndpointProvider } from "./components/ModelEndpointContext";
 import { AuthProvider } from "./components/AuthContext";
 import AuthModal from "./components/AuthModal";
-import { useInitGoogleLogin } from "./auth/token";
+import { getIdToken } from "./auth/token";
 import "./App.css";
 
 const App = () => {
-  const login = useInitGoogleLogin();
-
   useEffect(() => {
-    // On first load, if we don't have a token yet, pop the Google Sign‑In dialog
-    if (!sessionStorage.getItem("id_token")) {
-      login();
-    }
-  }, [login]);
+    // This will call initTokenClient.requestAccessToken(),
+    // which triggers the Google popup on first load.
+    getIdToken().catch((err) => {
+      console.error("Failed to get ID token:", err);
+    });
+  }, []);
 
   return (
     <ChatProvider>
