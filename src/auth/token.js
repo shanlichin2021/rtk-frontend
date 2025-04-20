@@ -1,10 +1,11 @@
+// src/auth/token.js
 import { useGoogleLogin } from "@react-oauth/google";
 
 /**
- * Hook to trigger Google Sign‑In and stash the ID token in sessionStorage.
+ * Hook to launch Google Sign‑In and store the ID token in sessionStorage.
  */
 export function useInitGoogleLogin() {
-  const login = useGoogleLogin({
+  return useGoogleLogin({
     flow: "implicit",
     scope: "openid email",
     onSuccess: (resp) => {
@@ -15,10 +16,11 @@ export function useInitGoogleLogin() {
       console.error("Google login failed");
     },
   });
-  return login;
 }
 
-/** Read the current ID token (if any) */
+/**
+ * Getter for the stored ID token (or null if not signed in)
+ */
 export function getIdToken() {
   return sessionStorage.getItem("id_token");
 }

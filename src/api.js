@@ -1,11 +1,12 @@
+// src/api.js
 import axios from "axios";
 import { getIdToken } from "./auth/token";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE
+  baseURL: import.meta.env.VITE_API_BASE,  // e.g. https://rtk-gateway-xxx.uc.gateway.dev
 });
 
-// Intercept all requests to inject the Google ID token
+// Intercept every request to inject Authorization header
 api.interceptors.request.use((config) => {
   const token = getIdToken();
   if (token) {

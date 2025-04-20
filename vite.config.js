@@ -7,8 +7,8 @@ export default defineConfig({
   base: "/rtk-frontend/",
   plugins: [react(), tailwindcss()], 
   server: {
+    // In dev, proxy /api → your Cloud Run or Gateway to bypass browser CORS
     proxy: {
-      // Proxy /api to Cloud Run in development to avoid CORS locally
       "/api": {
         target: process.env.VITE_API_BASE,
         changeOrigin: true,
